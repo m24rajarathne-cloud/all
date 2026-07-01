@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go Cart - Fresh Groceries Delivered</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--primary:#76D01F;--primary-dark:#5fa818;--dark:#333;--white:#FFF;--light-bg:#F5F7F9;--gray:#888;--light-gray:#E8ECEF;--danger:#E74C3C;--warning:#F39C12;--success:#27AE60;--shadow:0 2px 20px rgba(0,0,0,0.08);--shadow-lg:0 10px 40px rgba(0,0,0,0.12);--transition:all .3s cubic-bezier(.4,0,.2,1)}
+[data-theme="dark"]{--dark:#F5F7F9;--white:#1a1a2e;--light-bg:#16213e;--gray:#a0a0a0;--light-gray:#2d3748;--shadow:0 2px 20px rgba(0,0,0,0.3);--shadow-lg:0 10px 40px rgba(0,0,0,0.4)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--light-bg);color:var(--dark);line-height:1.6;overflow-x:hidden}
+.loader-overlay{position:fixed;inset:0;background:var(--white);display:flex;align-items:center;justify-content:center;z-index:10000;transition:opacity .5s,visibility .5s}
+.loader-overlay.hidden{opacity:0;visibility:hidden}
+.loader{width:60px;height:60px;border:4px solid var(--light-gray);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:var(--light-bg)}
+::-webkit-scrollbar-thumb{background:var(--primary);border-radius:4px}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:var(--transition);position:relative;overflow:hidden;text-decoration:none}
+.btn-primary{background:var(--primary);color:var(--white)}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 8px 25px rgba(118,208,31,0.3)}
+.btn-outline{background:transparent;color:var(--primary);border:2px solid var(--primary)}
+.btn-outline:hover{background:var(--primary);color:var(--white)}
+.btn-dark{background:var(--dark);color:var(--white)}
+
+.header{position:sticky;top:0;z-index:1000;background:var(--white);box-shadow:var(--shadow);transition:var(--transition)}
+.header.scrolled{box-shadow:var(--shadow-lg)}
+.top-bar{background:var(--primary);color:var(--white);padding:8px 0;font-size:13px}
+.top-bar-content{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.nav-main{max-width:1400px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;gap:32px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-size:26px;font-weight:800;color:var(--dark);flex-shrink:0}
+.logo-icon{width:42px;height:42px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:20px}
+.logo span{color:var(--primary)}
+.search-bar{flex:1;max-width:500px;position:relative}
+.search-bar input{width:100%;padding:12px 48px 12px 20px;border:2px solid var(--light-gray);border-radius:50px;font-size:14px;background:var(--light-bg);transition:var(--transition);color:var(--dark)}
+.search-bar input:focus{outline:none;border-color:var(--primary);background:var(--white)}
+.search-bar button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--primary);border:none;width:36px;height:36px;border-radius:50%;color:var(--white);cursor:pointer;transition:var(--transition)}
+.nav-actions{display:flex;align-items:center;gap:8px}
+.nav-btn{position:relative;padding:10px 16px;border:none;background:none;cursor:pointer;font-size:14px;font-weight:500;color:var(--dark);border-radius:10px;transition:var(--transition);display:flex;align-items:center;gap:6px;text-decoration:none}
+.nav-btn:hover{background:var(--light-bg);color:var(--primary)}
+.nav-btn .badge{position:absolute;top:4px;right:4px;background:var(--danger);color:var(--white);font-size:10px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+.mobile-menu-btn{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--dark)}
+
+.categories-nav{background:var(--white);border-top:1px solid var(--light-gray);padding:0 24px;overflow-x:auto;scrollbar-width:none}
+.categories-nav::-webkit-scrollbar{display:none}
+.categories-list{max-width:1400px;margin:0 auto;display:flex;gap:4px;padding:8px 0}
+.category-pill{padding:8px 18px;border:none;background:transparent;color:var(--gray);font-size:13px;font-weight:500;border-radius:20px;cursor:pointer;white-space:nowrap;transition:var(--transition)}
+.category-pill:hover,.category-pill.active{background:var(--primary);color:var(--white)}
+
+.hero{position:relative;min-height:600px;display:flex;align-items:center;overflow:hidden;background:linear-gradient(135deg,#f0f9e8 0%,#e8f5d6 100%)}
+[data-theme="dark"] .hero{background:linear-gradient(135deg,#1a2a1a 0%,#0f1f0f 100%)}
+.hero-slider{position:absolute;inset:0}
+.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity 1s ease;background-size:cover;background-position:center}
+.hero-slide.active{opacity:1}
+.hero-slide::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0.2) 100%)}
+.hero-content{position:relative;z-index:2;max-width:1400px;margin:0 auto;padding:0 24px;width:100%}
+.hero-text{max-width:600px;color:var(--white)}
+.hero-tag{display:inline-block;background:var(--primary);color:var(--white);padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:20px;animation:slideUp .6s ease .2s both}
+.hero h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.1;margin-bottom:20px;animation:slideUp .6s ease .4s both}
+.hero p{font-size:18px;opacity:.9;margin-bottom:32px;animation:slideUp .6s ease .6s both}
+.hero-buttons{display:flex;gap:16px;flex-wrap:wrap;animation:slideUp .6s ease .8s both}
+.hero-slider-dots{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:3}
+.slider-dot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,0.4);border:none;cursor:pointer;transition:var(--transition)}
+.slider-dot.active{background:var(--primary);width:32px;border-radius:6px}
+
+.section{padding:80px 24px;max-width:1400px;margin:0 auto}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;flex-wrap:wrap;gap:16px}
+.section-title{font-size:32px;font-weight:700;color:var(--dark)}
+.section-title span{color:var(--primary)}
+.view-all{color:var(--primary);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:6px;transition:var(--transition)}
+.view-all:hover{gap:10px}
+
+.flash-sale{background:linear-gradient(135deg,#fff5f5 0%,#ffe8e8 100%);border-radius:24px;padding:40px;margin-bottom:60px;position:relative;overflow:hidden}
+[data-theme="dark"] .flash-sale{background:linear-gradient(135deg,#2a1a1a 0%,#1f0f0f 100%)}
+.flash-sale::before{content:'⚡';position:absolute;font-size:200px;opacity:.05;right:-20px;top:-40px}
+.flash-header{display:flex;align-items:center;gap:24px;margin-bottom:30px;flex-wrap:wrap}
+.flash-title{font-size:28px;font-weight:800;color:var(--danger);display:flex;align-items:center;gap:10px}
+.countdown{display:flex;gap:12px}
+.countdown-item{background:var(--white);padding:12px 16px;border-radius:12px;text-align:center;min-width:60px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.countdown-item .num{font-size:24px;font-weight:800;color:var(--danger);display:block;line-height:1}
+.countdown-item .label{font-size:11px;color:var(--gray);text-transform:uppercase;margin-top:4px}
+
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px}
+.product-card{background:var(--white);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);transition:var(--transition);position:relative;animation:fadeIn .5s ease forwards}
+.product-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg)}
+.product-image-wrap{position:relative;padding:20px;background:var(--light-bg);overflow:hidden}
+.product-image{width:100%;height:200px;object-fit:contain;transition:var(--transition)}
+.product-card:hover .product-image{transform:scale(1.08)}
+.product-badges{position:absolute;top:16px;left:16px;display:flex;flex-direction:column;gap:6px}
+.badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase}
+.badge-discount{background:var(--danger);color:var(--white)}
+.badge-new{background:var(--primary);color:var(--white)}
+.badge-stock{background:var(--warning);color:var(--white)}
+.product-actions{position:absolute;top:16px;right:16px;display:flex;flex-direction:column;gap:8px;opacity:0;transform:translateX(10px);transition:var(--transition)}
+.product-card:hover .product-actions{opacity:1;transform:translateX(0)}
+.action-btn{width:38px;height:38px;border-radius:50%;border:none;background:var(--white);color:var(--dark);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.1);transition:var(--transition)}
+.action-btn:hover{background:var(--primary);color:var(--white);transform:scale(1.1)}
+.action-btn.wishlisted{background:var(--danger);color:var(--white)}
+.product-info{padding:20px}
+.product-category{font-size:12px;color:var(--primary);font-weight:600;text-transform:uppercase;margin-bottom:6px}
+.product-name{font-size:15px;font-weight:600;color:var(--dark);margin-bottom:10px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.product-rating{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.stars{color:var(--warning);font-size:13px}
+.rating-count{font-size:12px;color:var(--gray)}
+.product-price-wrap{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.price{font-size:20px;font-weight:800;color:var(--primary)}
+.old-price{font-size:14px;color:var(--gray);text-decoration:line-through}
+.product-stock{font-size:12px;color:var(--success);font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:4px}
+.product-stock.low{color:var(--danger)}
+.add-to-cart{width:100%;padding:12px;background:var(--primary);color:var(--white);border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;gap:8px}
+.add-to-cart:hover{background:var(--primary-dark);transform:scale(1.02)}
+.qty-selector{display:flex;align-items:center;justify-content:center;gap:12px;background:var(--light-bg);border-radius:12px;padding:8px}
+.qty-btn{width:32px;height:32px;border:none;background:var(--white);border-radius:8px;cursor:pointer;font-weight:700;color:var(--dark);transition:var(--transition)}
+.qty-btn:hover{background:var(--primary);color:var(--white)}
+.qty-value{font-weight:700;min-width:30px;text-align:center}
+
+.categories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:20px}
+.category-card{background:var(--white);border-radius:20px;padding:30px 20px;text-align:center;cursor:pointer;transition:var(--transition);box-shadow:var(--shadow);text-decoration:none;color:var(--dark)}
+.category-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);background:var(--primary);color:var(--white)}
+.category-card:hover .cat-icon{background:rgba(255,255,255,0.2);color:var(--white)}
+.cat-icon{width:64px;height:64px;background:var(--light-bg);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;transition:var(--transition)}
+.category-card h3{font-size:14px;font-weight:600}
+
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:30px}
+.feature-card{background:var(--white);border-radius:20px;padding:40px 30px;text-align:center;box-shadow:var(--shadow);transition:var(--transition)}
+.feature-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+.feature-icon{width:80px;height:80px;background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:32px;color:var(--white)}
+.feature-card h3{font-size:18px;font-weight:700;margin-bottom:10px}
+.feature-card p{color:var(--gray);font-size:14px}
+
+.reviews-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.review-card{background:var(--white);border-radius:20px;padding:30px;box-shadow:var(--shadow)}
+.review-header{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.review-avatar{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:flex;align-items:center;justify-content:center;color:var(--white);font-weight:700;font-size:18px}
+.review-meta h4{font-size:15px;font-weight:600}
+.review-text{color:var(--gray);font-size:14px;line-height:1.7}
+
+.newsletter{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);border-radius:24px;padding:60px 40px;text-align:center;color:var(--white);position:relative;overflow:hidden}
+.newsletter h2{font-size:32px;font-weight:800;margin-bottom:12px}
+.newsletter p{opacity:.9;margin-bottom:30px;max-width:500px;margin-left:auto;margin-right:auto}
+.newsletter-form{display:flex;gap:12px;max-width:500px;margin:0 auto;flex-wrap:wrap;justify-content:center}
+.newsletter-form input{flex:1;min-width:250px;padding:14px 24px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.2);color:var(--white)}
+.newsletter-form input::placeholder{color:rgba(255,255,255,0.7)}
+.newsletter-form input:focus{outline:none;background:rgba(255,255,255,0.3)}
+.newsletter-form .btn{background:var(--white);color:var(--primary)}
+.newsletter-form .btn:hover{background:var(--dark);color:var(--white)}
+
+.footer{background:var(--dark);color:var(--white);padding:60px 24px 30px}
+.footer-content{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:40px;margin-bottom:40px}
+.footer-brand .logo{color:var(--white);margin-bottom:16px}
+.footer-brand p{opacity:.7;font-size:14px;line-height:1.7}
+.footer h4{font-size:16px;font-weight:700;margin-bottom:20px}
+.footer-links{list-style:none}
+.footer-links li{margin-bottom:12px}
+.footer-links a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:14px;transition:var(--transition)}
+.footer-links a:hover{color:var(--primary);padding-left:4px}
+.footer-social{display:flex;gap:12px;margin-top:20px}
+.social-link{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;color:var(--white);text-decoration:none;transition:var(--transition)}
+.social-link:hover{background:var(--primary);transform:translateY(-3px)}
+.footer-bottom{max-width:1400px;margin:0 auto;padding-top:30px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-size:13px;opacity:.6}
+
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;opacity:0;visibility:hidden;transition:var(--transition)}
+.cart-overlay.active{opacity:1;visibility:visible}
+.cart-sidebar{position:fixed;top:0;right:-420px;width:420px;max-width:100%;height:100vh;background:var(--white);z-index:2001;transition:right .4s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.cart-sidebar.active{right:0}
+.cart-header{padding:24px;border-bottom:1px solid var(--light-gray);display:flex;justify-content:space-between;align-items:center}
+.cart-header h2{font-size:20px;font-weight:700}
+.close-cart{background:none;border:none;font-size:24px;cursor:pointer;color:var(--gray);width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.close-cart:hover{background:var(--light-bg);color:var(--danger)}
+.cart-items{flex:1;overflow-y:auto;padding:20px}
+.cart-empty{text-align:center;padding:60px 20px;color:var(--gray)}
+.cart-empty i{font-size:64px;margin-bottom:16px;opacity:.3}
+.cart-item{display:flex;gap:16px;padding:16px;background:var(--light-bg);border-radius:16px;margin-bottom:12px;animation:slideUp .3s ease}
+.cart-item-img{width:80px;height:80px;object-fit:contain;background:var(--white);border-radius:12px;padding:8px}
+.cart-item-info{flex:1}
+.cart-item-name{font-weight:600;font-size:14px;margin-bottom:4px}
+.cart-item-price{color:var(--primary);font-weight:700;font-size:15px}
+.cart-item-actions{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.remove-item{background:none;border:none;color:var(--danger);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px}
+.cart-footer{padding:24px;border-top:1px solid var(--light-gray);background:var(--white)}
+.cart-summary{margin-bottom:20px}
+.summary-row{display:flex;justify-content:space-between;margin-bottom:10px;font-size:14px}
+.summary-row.discount{color:var(--success)}
+.summary-row.total{font-size:18px;font-weight:700;padding-top:10px;border-top:1px solid var(--light-gray)}
+.checkout-btn{width:100%;padding:16px;font-size:16px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:var(--transition)}
+.modal-overlay.active{opacity:1;visibility:visible}
+.modal{background:var(--white);border-radius:24px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;transform:scale(0.9);transition:var(--transition);position:relative}
+.modal-overlay.active .modal{transform:scale(1)}
+.modal-content{display:grid;grid-template-columns:1fr 1fr}
+.modal-image{background:var(--light-bg);padding:40px;display:flex;align-items:center;justify-content:center}
+.modal-image img{max-width:100%;max-height:400px;object-fit:contain}
+.modal-details{padding:40px}
+.modal-close{position:absolute;top:20px;right:20px;background:var(--white);border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:18px;box-shadow:var(--shadow);transition:var(--transition);z-index:10}
+.modal-close:hover{background:var(--danger);color:var(--white)}
+
+.toast-container{position:fixed;bottom:30px;right:30px;z-index:5000;display:flex;flex-direction:column;gap:12px}
+.toast{background:var(--white);padding:16px 24px;border-radius:16px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:12px;animation:slideUp .4s ease;min-width:300px;border-left:4px solid var(--primary)}
+.toast.success{border-left-color:var(--success)}
+.toast.error{border-left-color:var(--danger)}
+.toast-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px}
+.toast.success .toast-icon{background:rgba(39,174,96,0.1);color:var(--success)}
+.toast.error .toast-icon{background:rgba(231,76,60,0.1);color:var(--danger)}
+
+.scroll-top{position:fixed;bottom:30px;right:30px;width:50px;height:50px;background:var(--primary);color:var(--white);border:none;border-radius:50%;cursor:pointer;font-size:20px;box-shadow:var(--shadow-lg);opacity:0;visibility:hidden;transition:var(--transition);z-index:100;display:flex;align-items:center;justify-content:center}
+.scroll-top.visible{opacity:1;visibility:visible}
+.scroll-top:hover{transform:translateY(-4px);background:var(--primary-dark)}
+
+.mobile-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1999;opacity:0;visibility:hidden;transition:var(--transition)}
+.mobile-menu-overlay.active{opacity:1;visibility:visible}
+.mobile-menu{position:fixed;top:0;left:-100%;width:320px;max-width:85%;height:100vh;background:var(--white);z-index:2000;transition:left .4s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:24px}
+.mobile-menu.active{left:0}
+.mobile-menu-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+.mobile-nav-links{list-style:none}
+.mobile-nav-links li{margin-bottom:8px}
+.mobile-nav-links a{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:var(--dark);text-decoration:none;font-weight:500;transition:var(--transition)}
+.mobile-nav-links a:hover,.mobile-nav-links a.active{background:var(--light-bg);color:var(--primary)}
+
+.page-section{display:none;animation:fadeIn .5s ease}
+.page-section.active{display:block}
+
+.checkout-grid{display:grid;grid-template-columns:1fr 400px;gap:40px}
+.checkout-form{background:var(--white);border-radius:20px;padding:40px;box-shadow:var(--shadow)}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;margin-bottom:8px;font-size:14px;font-weight:600;color:var(--dark)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:14px 18px;border:2px solid var(--light-gray);border-radius:12px;font-size:15px;background:var(--light-bg);color:var(--dark);transition:var(--transition)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);background:var(--white)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.payment-methods{display:flex;flex-direction:column;gap:12px}
+.payment-method{display:flex;align-items:center;gap:14px;padding:16px;border:2px solid var(--light-gray);border-radius:12px;cursor:pointer;transition:var(--transition)}
+.payment-method:hover,.payment-method.selected{border-color:var(--primary);background:rgba(118,208,31,0.05)}
+.payment-method input{width:20px;height:20px;accent-color:var(--primary)}
+.payment-method i{font-size:24px;width:40px;text-align:center}
+.order-summary{background:var(--white);border-radius:20px;padding:30px;box-shadow:var(--shadow);position:sticky;top:100px;height:fit-content}
+.coupon-input{display:flex;gap:8px;margin-bottom:20px}
+.coupon-input input{flex:1;padding:12px 16px;border:2px dashed var(--light-gray);border-radius:10px;font-size:14px}
+.coupon-input button{padding:12px 20px;background:var(--primary);color:var(--white);border:none;border-radius:10px;font-weight:600;cursor:pointer}
+
+.account-layout{display:grid;grid-template-columns:280px 1fr;gap:40px}
+.account-sidebar{background:var(--white);border-radius:20px;padding:30px;box-shadow:var(--shadow);height:fit-content;position:sticky;top:100px}
+.account-avatar{text-align:center;margin-bottom:30px}
+.account-avatar-img{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--white);font-size:40px;font-weight:700}
+.account-menu{list-style:none}
+.account-menu li{margin-bottom:4px}
+.account-menu a{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:var(--gray);text-decoration:none;font-weight:500;transition:var(--transition);cursor:pointer}
+.account-menu a:hover,.account-menu a.active{background:var(--light-bg);color:var(--primary)}
+.account-content{background:var(--white);border-radius:20px;padding:40px;box-shadow:var(--shadow)}
+
+.about-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:var(--white);padding:100px 24px;text-align:center}
+.about-hero h1{font-size:48px;font-weight:800;margin-bottom:16px}
+.about-hero p{font-size:18px;opacity:.9;max-width:600px;margin:0 auto}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:30px;margin-top:-60px;position:relative;z-index:2}
+.stat-card{background:var(--white);border-radius:20px;padding:40px 30px;text-align:center;box-shadow:var(--shadow-lg)}
+.stat-num{font-size:42px;font-weight:800;color:var(--primary);line-height:1}
+.stat-label{color:var(--gray);margin-top:8px;font-size:14px}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:30px}
+.team-card{background:var(--white);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);text-align:center;transition:var(--transition)}
+.team-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+.team-img{width:100%;height:280px;object-fit:cover;background:var(--light-bg)}
+.team-info{padding:24px}
+.team-info h3{font-size:18px;font-weight:700}
+.team-info p{color:var(--primary);font-weight:600;font-size:14px;margin-top:4px}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.contact-info-card{background:var(--white);border-radius:20px;padding:30px;box-shadow:var(--shadow);margin-bottom:20px;display:flex;align-items:flex-start;gap:20px}
+.contact-icon{width:56px;height:56px;background:rgba(118,208,31,0.1);border-radius:16px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:22px;flex-shrink:0}
+.map-placeholder{background:var(--light-bg);border-radius:20px;height:300px;display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:18px;flex-direction:column;gap:12px}
+
+.faq-item{background:var(--white);border-radius:16px;margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)}
+.faq-question{padding:20px 24px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:600;transition:var(--transition)}
+.faq-question:hover{color:var(--primary)}
+.faq-question i{transition:var(--transition)}
+.faq-item.active .faq-question i{transform:rotate(180deg)}
+.faq-answer{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.faq-item.active .faq-answer{max-height:300px}
+.faq-answer p{padding:0 24px 20px;color:var(--gray);line-height:1.7}
+
+.filters-bar{background:var(--white);border-radius:16px;padding:20px 24px;margin-bottom:30px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow)}
+.filter-group{display:flex;align-items:center;gap:8px}
+.filter-group label{font-size:13px;font-weight:600;color:var(--gray)}
+.filter-group select,.filter-group input{padding:10px 14px;border:2px solid var(--light-gray);border-radius:10px;font-size:13px;background:var(--light-bg);color:var(--dark)}
+.price-range{display:flex;align-items:center;gap:8px}
+.price-range input{width:100px}
+
+.newsletter-popup{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:4000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:var(--transition)}
+.newsletter-popup.active{opacity:1;visibility:visible}
+.popup-content{background:var(--white);border-radius:24px;max-width:500px;width:100%;padding:50px 40px;text-align:center;position:relative;transform:scale(0.9);transition:var(--transition)}
+.newsletter-popup.active .popup-content{transform:scale(1)}
+.popup-content .logo-icon{margin:0 auto 20px;width:60px;height:60px;font-size:28px}
+.popup-close{position:absolute;top:16px;right:16px;background:var(--light-bg);border:none;width:36px;height:36px;border-radius:50%;cursor:pointer;transition:var(--transition)}
+.popup-close:hover{background:var(--danger);color:var(--white)}
+
+.recently-viewed{position:fixed;bottom:100px;left:30px;background:var(--white);border-radius:16px;padding:16px;box-shadow:var(--shadow-lg);z-index:50;max-width:280px;display:none}
+.recently-viewed.visible{display:block}
+.recently-viewed h4{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.recent-items{display:flex;gap:10px}
+.recent-item{width:60px;height:60px;border-radius:12px;background:var(--light-bg);overflow:hidden;cursor:pointer;transition:var(--transition)}
+.recent-item:hover{transform:scale(1.1)}
+.recent-item img{width:100%;height:100%;object-fit:contain;padding:4px}
+
+.breadcrumb{padding:20px 24px;max-width:1400px;margin:0 auto;font-size:14px;color:var(--gray)}
+.breadcrumb a{color:var(--primary);text-decoration:none}
+.breadcrumb a:hover{text-decoration:underline}
+
+@media(max-width:1024px){.checkout-grid,.contact-grid,.account-layout{grid-template-columns:1fr}.modal-content{grid-template-columns:1fr}.order-summary,.account-sidebar{position:static}}
+@media(max-width:768px){.nav-actions .nav-btn span{display:none}.search-bar{display:none}.mobile-menu-btn{display:block}.categories-nav{display:none}.hero{min-height:500px}.hero h1{font-size:32px}.section{padding:50px 20px}.flash-sale{padding:30px 20px}.cart-sidebar{width:100%}.footer-content{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}}
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<!-- Loader -->
+<div class="loader-overlay" id="loader"><div class="loader"></div></div>
+
+<!-- Header -->
+<header class="header" id="header">
+<div class="top-bar"><div class="top-bar-content"><span>Free delivery on orders over $50 | 24/7 Support: 1-800-GOCART</span><span>New York, NY</span></div></div>
+<nav class="nav-main">
+<button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+<a href="#" class="logo" onclick="showPage('home');return false;"><div class="logo-icon"><i class="fas fa-shopping-basket"></i></div>Go <span>Cart</span></a>
+<div class="search-bar"><input type="text" id="searchInput" placeholder="Search for fresh groceries..."><button onclick="searchProducts()"><i class="fas fa-search"></i></button></div>
+<div class="nav-actions">
+<button class="nav-btn" onclick="toggleDarkMode()" title="Dark Mode"><i class="fas fa-moon"></i></button>
+<a class="nav-btn" href="#" onclick="showPage('account');return false;"><i class="fas fa-user"></i><span>Login</span></a>
+<a class="nav-btn" href="#" onclick="showPage('account');return false;"><i class="fas fa-user-plus"></i><span>Register</span></a>
+<button class="nav-btn" onclick="showPage('account','wishlist')" title="Wishlist"><i class="fas fa-heart"></i><span class="badge" id="wishlistBadge" style="display:none">0</span></button>
+<button class="nav-btn" onclick="toggleCart()" title="Cart"><i class="fas fa-shopping-cart"></i><span class="badge" id="cartBadge" style="display:none">0</span></button>
+</div>
+</nav>
+<div class="categories-nav"><div class="categories-list" id="categoriesList"></div></div>
+</header>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()"></div>
+<div class="mobile-menu" id="mobileMenu">
+<div class="mobile-menu-header">
+<a href="#" class="logo" onclick="showPage('home');toggleMobileMenu();return false;"><div class="logo-icon"><i class="fas fa-shopping-basket"></i></div>Go <span>Cart</span></a>
+<button class="close-cart" onclick="toggleMobileMenu()"><i class="fas fa-times"></i></button>
+</div>
+<ul class="mobile-nav-links">
+<li><a href="#" onclick="showPage('home');toggleMobileMenu();return false;" class="active"><i class="fas fa-home"></i> Home</a></li>
+<li><a href="#" onclick="showPage('categories');toggleMobileMenu();return false;"><i class="fas fa-th-large"></i> Categories</a></li>
+<li><a href="#" onclick="showPage('deals');toggleMobileMenu();return false;"><i class="fas fa-percent"></i> Deals</a></li>
+<li><a href="#" onclick="showPage('about');toggleMobileMenu();return false;"><i class="fas fa-info-circle"></i> About Us</a></li>
+<li><a href="#" onclick="showPage('contact');toggleMobileMenu();return false;"><i class="fas fa-envelope"></i> Contact</a></li>
+<li><a href="#" onclick="showPage('account');toggleMobileMenu();return false;"><i class="fas fa-user"></i> My Account</a></li>
+<li><a href="#" onclick="showPage('faq');toggleMobileMenu();return false;"><i class="fas fa-question-circle"></i> FAQ</a></li>
+</ul>
+</div>
+
+<!-- Cart Sidebar -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+<div class="cart-sidebar" id="cartSidebar">
+<div class="cart-header"><h2><i class="fas fa-shopping-cart"></i> Your Cart</h2><button class="close-cart" onclick="toggleCart()"><i class="fas fa-times"></i></button></div>
+<div class="cart-items" id="cartItems"><div class="cart-empty"><i class="fas fa-shopping-basket"></i><h3>Your cart is empty</h3><p>Add some fresh products!</p></div></div>
+<div class="cart-footer" id="cartFooter" style="display:none">
+<div class="cart-summary">
+<div class="summary-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+<div class="summary-row"><span>Delivery</span><span id="deliveryFee">$0.00</span></div>
+<div class="summary-row discount" id="discountRow" style="display:none"><span>Discount</span><span id="discountAmount">-$0.00</span></div>
+<div class="summary-row total"><span>Total</span><span id="cartTotal">$0.00</span></div>
+</div>
+<button class="btn btn-primary checkout-btn" onclick="showPage('checkout');toggleCart();"><i class="fas fa-credit-card"></i> Proceed to Checkout</button>
+</div>
+</div>
+
+<!-- Quick View Modal -->
+<div class="modal-overlay" id="quickViewModal" onclick="closeQuickView(event)">
+<div class="modal" style="position:relative"><button class="modal-close" onclick="closeQuickView()"><i class="fas fa-times"></i></button><div class="modal-content" id="quickViewContent"></div></div>
+</div>
+
+<!-- Newsletter Popup -->
+<div class="newsletter-popup" id="newsletterPopup">
+<div class="popup-content">
+<button class="popup-close" onclick="closeNewsletterPopup()"><i class="fas fa-times"></i></button>
+<div class="logo-icon"><i class="fas fa-shopping-basket"></i></div>
+<h2 style="font-size:24px;margin-bottom:10px">Join Go Cart Family!</h2>
+<p style="color:var(--gray);margin-bottom:24px">Subscribe and get <strong style="color:var(--primary)">20% OFF</strong> your first order plus exclusive deals.</p>
+<div class="newsletter-form" style="flex-direction:column"><input type="email" id="popupEmail" placeholder="Enter your email" style="min-width:auto"><button class="btn btn-primary" onclick="subscribeNewsletter()" style="width:100%;justify-content:center">Subscribe Now</button></div>
+<p style="font-size:12px;color:var(--gray);margin-top:16px">No spam, unsubscribe anytime.</p>
+</div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Recently Viewed -->
+<div class="recently-viewed" id="recentlyViewed"><h4><i class="fas fa-history"></i> Recently Viewed</h4><div class="recent-items" id="recentItems"></div></div>
+
+<!-- Scroll to Top -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+
+<!-- ==================== HOME PAGE ==================== -->
+<div class="page-section active" id="page-home">
+<section class="hero">
+<div class="hero-slider">
+<div class="hero-slide active" style="background-image:url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920')"></div>
+<div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=1920')"></div>
+<div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1920')"></div>
+</div>
+<div class="hero-content">
+<div class="hero-text">
+<span class="hero-tag">Fresh & Organic</span>
+<h1>Fresh Groceries<br>Delivered to<br>Your Door</h1>
+<p>Shop from over 10,000+ fresh products. Same-day delivery, unbeatable prices, and premium quality guaranteed.</p>
+<div class="hero-buttons">
+<a href="#" class="btn btn-primary" onclick="showPage('categories');return false;"><i class="fas fa-shopping-bag"></i> Shop Now</a>
+<a href="#" class="btn btn-outline" style="border-color:var(--white);color:var(--white)" onclick="showPage('deals');return false;"><i class="fas fa-tag"></i> View Deals</a>
+</div>
+</div>
+</div>
+<div class="hero-slider-dots">
+<button class="slider-dot active" onclick="goToSlide(0)"></button>
+<button class="slider-dot" onclick="goToSlide(1)"></button>
+<button class="slider-dot" onclick="goToSlide(2)"></button>
+</div>
+</section>
+
+<section class="section">
+<div class="section-header"><h2 class="section-title">Featured <span>Categories</span></h2><a href="#" class="view-all" onclick="showPage('categories');return false;">View All <i class="fas fa-arrow-right"></i></a></div>
+<div class="categories-grid" id="featuredCategories"></div>
+</section>
+
+<section class="section" style="padding-top:0">
+<div class="flash-sale">
+<div class="flash-header"><h2 class="flash-title"><i class="fas fa-bolt"></i> Flash Sale</h2><div class="countdown" id="countdown"><div class="countdown-item"><span class="num" id="cd-hours">04</span><span class="label">Hours</span></div><div class="countdown-item"><span class="num" id="cd-minutes">32</span><span class="label">Mins</span></div><div class="countdown-item"><span class="num" id="cd-seconds">15</span><span class="label">Secs</span></div></div></div>
+<div class="products-grid" id="flashSaleProducts"></div>
+</div>
+</section>
+
+<section class="section" style="padding-top:0">
+<div class="section-header"><h2 class="section-title">Best <span>Selling</span></h2><a href="#" class="view-all" onclick="showPage('categories');return false;">View All <i class="fas fa-arrow-right"></i></a></div>
+<div class="products-grid" id="bestSellingProducts"></div>
+</section>
+
+<section class="section" style="padding-top:0">
+<div class="section-header"><h2 class="section-title">Today's <span>Deals</span></h2><a href="#" class="view-all" onclick="showPage('deals');return false;">View All <i class="fas fa-arrow-right"></i></a></div>
+<div class="products-grid" id="todaysDeals"></div>
+</section>
+
+<section class="section" style="padding-top:0">
+<div class="section-header" style="justify-content:center;flex-direction:column;text-align:center"><h2 class="section-title">Why Choose <span>Go Cart</span></h2><p style="color:var(--gray)">We are committed to providing the best shopping experience</p></div>
+<div class="features-grid">
+<div class="feature-card"><div class="feature-icon"><i class="fas fa-truck"></i></div><h3>Fast Delivery</h3><p>Same-day delivery for orders placed before 2 PM. Track your order in real-time.</p></div>
+<div class="feature-card"><div class="feature-icon"><i class="fas fa-leaf"></i></div><h3>100% Fresh</h3><p>All products are sourced directly from local farms and verified suppliers.</p></div>
+<div class="feature-card"><div class="feature-icon"><i class="fas fa-tags"></i></div><h3>Best Prices</h3><p>Price match guarantee. Find it cheaper elsewhere and we will beat it by 10%.</p></div>
+<div class="feature-card"><div class="feature-icon"><i class="fas fa-headset"></i></div><h3>24/7 Support</h3><p>Our friendly team is available around the clock to help with any questions.</p></div>
+</div>
+</section>
+
+<section class="section" style="padding-top:0">
+<div class="section-header" style="justify-content:center;flex-direction:column;text-align:center"><h2 class="section-title">Customer <span>Reviews</span></h2><p style="color:var(--gray)">What our customers say about us</p></div>
+<div class="reviews-grid">
+<div class="review-card"><div class="review-header"><div class="review-avatar">SJ</div><div class="review-meta"><h4>Sarah Johnson</h4><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div></div></div><p class="review-text">"Absolutely love Go Cart! The produce is always fresh and the delivery is incredibly fast. I have been using it for 6 months and never had a bad experience. Highly recommend!"</p></div>
+<div class="review-card"><div class="review-header"><div class="review-avatar">MR</div><div class="review-meta"><h4>Michael Rodriguez</h4><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div></div></div><p class="review-text">"Great selection of organic products. The prices are competitive and the app is super easy to use. The flash sales are amazing - I save so much money every week!"</p></div>
+<div class="review-card"><div class="review-header"><div class="review-avatar">EW</div><div class="review-meta"><h4>Emily Watson</h4><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div></div></div><p class="review-text">"As a busy mom, Go Cart has been a lifesaver. I can order groceries while my kids nap and everything arrives fresh. The customer service team is wonderful too!"</p></div>
+</div>
+</section>
+
+<section class="section" style="padding-top:0">
+<div class="newsletter"><h2>Subscribe to Our Newsletter</h2><p>Get the latest deals, recipes, and exclusive offers delivered straight to your inbox.</p><div class="newsletter-form"><input type="email" id="newsletterEmail" placeholder="Enter your email address"><button class="btn" onclick="subscribeNewsletterMain()"><i class="fas fa-paper-plane"></i> Subscribe</button></div></div>
+</section>
+</div>
+
+<!-- ==================== CATEGORIES PAGE ==================== -->
+<div class="page-section" id="page-categories">
+<div class="breadcrumb"><a href="#" onclick="showPage('home');return false;">Home</a> / <span>Categories</span></div>
+<section class="section" style="padding-top:20px"><div class="section-header"><h2 class="section-title">All <span>Categories</span></h2></div><div class="categories-grid" id="allCategories"></div></section>
+<section class="section" style="padding-top:0">
+<div class="filters-bar">
+<div class="filter-group"><label>Category:</label><select id="filterCategory" onchange="applyFilters()"></select></div>
+<div class="filter-group"><label>Sort by:</label><select id="sortBy" onchange="applyFilters()"><option value="featured">Featured</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option><option value="rating">Highest Rated</option><option value="newest">Newest</option></select></div>
+<div class="filter-group price-range"><label>Price:</label><input type="number" id="minPrice" placeholder="Min" onchange="applyFilters()"><span>-</span><input type="number" id="maxPrice" placeholder="Max" onchange="applyFilters()"></div>
+</div>
+<div class="products-grid" id="filteredProducts"></div>
+</section>
+</div>
+
+<!-- ==================== DEALS PAGE ==================== -->
+<div class="page-section" id="page-deals">
+<div class="breadcrumb"><a href="#" onclick="showPage('home');return false;">Home</a> / <span>Deals</span></div>
+<section class="section" style="padding-top:20px">
+<div class="flash-sale"><div class="flash-header"><h2 class="flash-title"><i class="fas fa-bolt"></i> Flash Sale - Up to 50% Off</h2><div class="countdown"><div class="countdown-item"><span class="num" id="deal-hours">04</span><span class="label">Hours</span></div><div class="countdown-item"><span class="num" id="deal-minutes">32</span><span class="label">Mins</span></div><div class="countdown-item"><span class="num" id="deal-seconds">15</span><span class="label">Secs</span></div></div></div></div>
+<div class="products-grid" id="dealsProducts"></div>
+</section>
+</div>
+
+<!-- ==================== CHECKOUT PAGE ==================== -->
+<div class="page-section" id="page-checkout">
+<div class="breadcrumb"><a href="#" onclick="showPage('home');return false;">Home</a> / <span>Checkout</span></div>
+<section class="section" style="padding-top:20px">
+<div class="checkout-grid">
+<div class="checkout-form">
+<h2 style="margin-bottom:30px;font-size:24px"><i class="fas fa-truck"></i> Billing Details</h2>
+<div class="form-row"><div class="form-group"><label>First Name *</label><input type="text" id="firstName" placeholder="John"></div><div class="form-group"><label>Last Name *</label><input type="text" id="lastName" placeholder="Doe"></div></div>
+<div class="form-group"><label>Email *</label><input type="email" id="email" placeholder="john@example.com"></div>
+<div class="form-group"><label>Phone *</label><input type="tel" id="phone" placeholder="+1 234 567 890"></div>
+<div class="form-group"><label>Address *</label><input type="text" id="address" placeholder="123 Main Street"></div>
+<div class="form-row"><div class="form-group"><label>City *</label><input type="text" id="city" placeholder="New York"></div><div class="form-group"><label>ZIP Code *</label><input type="text" id="zip" placeholder="10001"></div></div>
+<h3 style="margin:30px 0 20px;font-size:18px"><i class="fas fa-credit-card"></i> Payment Method</h3>
+<div class="payment-methods">
+<label class="payment-method selected" onclick="selectPayment(this)"><input type="radio" name="payment" value="cod" checked><i class="fas fa-money-bill-wave"></i><div><strong>Cash on Delivery</strong><p style="font-size:12px;color:var(--gray);margin:0">Pay when you receive</p></div></label>
+<label class="payment-method" onclick="selectPayment(this)"><input type="radio" name="payment" value="card"><i class="fas fa-credit-card"></i><div><strong>Credit Card</strong><p style="font-size:12px;color:var(--gray);margin:0">Visa, Mastercard, Amex</p></div></label>
+<label class="payment-method" onclick="selectPayment(this)"><input type="radio" name="payment" value="paypal"><i class="fab fa-paypal"></i><div><strong>PayPal</strong><p style="font-size:12px;color:var(--gray);margin:0">Fast and secure</p></div></label>
+<label class="payment-method" onclick="selectPayment(this)"><input type="radio" name="payment" value="gpay"><i class="fab fa-google-pay"></i><div><strong>Google Pay</strong><p style="font-size:12px;color:var(--gray);margin:0">One-tap payment</p></div></label>
+</div>
+<button class="btn btn-primary" style="width:100%;margin-top:30px;padding:16px" onclick="placeOrder()"><i class="fas fa-check-circle"></i> Place Order</button>
+</div>
+<div class="order-summary">
+<h3 style="margin-bottom:20px;font-size:18px"><i class="fas fa-receipt"></i> Order Summary</h3>
+<div class="coupon-input"><input type="text" id="couponCode" placeholder="Enter coupon code"><button onclick="applyCoupon()">Apply</button></div>
+<div id="checkoutItems"></div>
+<div class="cart-summary" style="margin-top:20px;border-top:1px solid var(--light-gray);padding-top:20px">
+<div class="summary-row"><span>Subtotal</span><span id="checkoutSubtotal">$0.00</span></div>
+<div class="summary-row"><span>Delivery</span><span id="checkoutDelivery">$0.00</span></div>
+<div class="summary-row discount" id="checkoutDiscountRow" style="display:none"><span>Discount</span><span id="checkoutDiscount">-$0.00</span></div>
+<div class="summary-row total"><span>Total</span><span id="checkoutTotal">$0.00</span></div>
+</div>
+</div>
+</div>
+</section>
+</div>
+
+<!-- ==================== ACCOUNT PAGE ==================== -->
+<div class="page-section" id="page-account">
+<div class="breadcrumb"><a href="#" onclick="showPage('home');return false;">Home</a> / <span>My Account</span></div>
+<section class="section" style="padding-top:20px">
+<div class="account-layout">
+<div class="account-sidebar">
+<div class="account-avatar"><div class="account-avatar-img">JD</div><h3>John Doe</h3><p style="color:var(--gray);font-size:14px">john@example.com</p></div>
+<ul class="account-menu">
+<li><a onclick="showAccountTab('profile')" id="tab-profile" class="active"><i class="fas fa-user"></i> Profile</a></li>
+<li><a onclick="showAccountTab('orders')" id="tab-orders"><i class="fas fa-box"></i> Orders</a></li>
+<li><a onclick="showAccountTab('wishlist')" id="tab-wishlist"><i class="fas fa-heart"></i> Wishlist</a></li>
+<li><a onclick="showAccountTab('addresses')" id="tab-addresses"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
+<li><a onclick="showAccountTab('settings')" id="tab-settings"><i class="fas fa-cog"></i> Settings</a></li>
+</ul>
+</div>
+<div class="account-content" id="accountContent">
+<div id="account-profile"><h2 style="margin-bottom:24px">My Profile</h2><div class="form-row"><div class="form-group"><label>First Name</label><input type="text" value="John"></div><div class="form-group"><label>Last Name</label><input type="text" value="Doe"></div></div><div class="form-group"><label>Email</label><input type="email" value="john@example.com"></div><div class="form-group"><label>Phone</label><input type="tel" value="+1 234 567 890"></div><div class="form-group"><label>Bio</label><textarea rows="3" placeholder="Tell us about yourself..."></textarea></div><button class="btn btn-primary" onclick="showToast('Profile updated successfully!','success')"><i class="fas fa-save"></i> Save Changes</button></div>
+<div id="account-orders" style="display:none"><h2 style="margin-bottom:24px">My Orders</h2><div id="ordersList"><p style="color:var(--gray);text-align:center;padding:40px">No orders yet. Start shopping!</p></div></div>
+<div id="account-wishlist" style="display:none"><h2 style="margin-bottom:24px">My Wishlist</h2><div class="products-grid" id="wishlistGrid"></div></div>
+<div id="account-addresses" style="display:none"><h2 style="margin-bottom:24px">My Addresses</h2><div class="form-group"><label>Address</label><input type="text" value="123 Main Street, New York, NY 10001"></div><button class="btn btn-primary"><i class="fas fa-plus"></i> Add New Address</button></div>
+<div id="account-settings" style="display:none"><h2 style="margin-bottom:24px">Account Settings</h2><div class="form-group"><label>Current Password</label><input type="password" placeholder="Enter current password"></div><div class="form-group"><label>New Password</label><input type="password" placeholder="Enter new password"></div><div class="form-group"><label>Confirm Password</label><input type="password" placeholder="Confirm new password"></div><button class="btn btn-primary" onclick="showToast('Password updated!','success')"><i class="fas fa-lock"></i> Update Password</button></div>
+</div>
+</div>
+</section>
+</div>
+
+<!-- ==================== ABOUT PAGE ==================== -->
+<div class="page-section" id="page-about">
+<div class="about-hero"><h1>About Go Cart</h1><p>Your trusted partner for fresh, quality groceries delivered right to your doorstep.</p></div>
+<section class="section" style="padding-top:0">
+<div class="stats-grid">
+<div class="stat-card"><div class="stat-num">50K+</div><div class="stat-label">Happy Customers</div></div>
+<div class="stat-card"><div class="stat-num">10K+</div><div class="stat-label">Products</div></div>
+<div class="stat-card"><div class="stat-num">500+</div><div class="stat-label">Delivery Partners</div></div>
+<div class="stat-card"><div class="stat-num">25+</div><div class="stat-label">Cities Served</div></div>
+</div>
+</section>
+<section class="section" style="padding-top:0">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center">
+<div><h2 style="font-size:32px;margin-bottom:20px">Our <span style="color:var(--primary)">Story</span></h2><p style="color:var(--gray);line-height:1.8;margin-bottom:16px">Founded in 2020, Go Cart started with a simple mission: to make fresh, quality groceries accessible to everyone. What began as a small local delivery service has grown into one of the most trusted online supermarkets.</p><p style="color:var(--gray);line-height:1.8;margin-bottom:16px">We partner directly with local farmers and premium suppliers to ensure that every product meets our high standards. From farm-fresh vegetables to artisanal baked goods, we bring the best to your table.</p></div>
+<div style="background:var(--white);border-radius:24px;padding:40px;box-shadow:var(--shadow)"><h3 style="margin-bottom:16px"><i class="fas fa-bullseye" style="color:var(--primary)"></i> Our Mission</h3><p style="color:var(--gray);line-height:1.7;margin-bottom:24px">To revolutionize grocery shopping by providing fresh, affordable, and sustainably sourced products with unmatched convenience.</p><h3 style="margin-bottom:16px"><i class="fas fa-eye" style="color:var(--primary)"></i> Our Vision</h3><p style="color:var(--gray);line-height:1.7">To become the most loved grocery delivery platform, known for quality, speed, and exceptional customer experience.</p></div>
+</div>
+</section>
+<section class="section" style="padding-top:0">
+<div class="section-header" style="justify-content:center;flex-direction:column;text-align:center"><h2 class="section-title">Meet Our <span>Team</span></h2><p style="color:var(--gray)">The passionate people behind Go Cart</p></div>
+<div class="team-grid">
+<div class="team-card"><div class="team-img" style="background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:48px"><i class="fas fa-user"></i></div><div class="team-info"><h3>Alex Chen</h3><p>Founder & CEO</p></div></div>
+<div class="team-card"><div class="team-img" style="background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;color:#fff;font-size:48px"><i class="fas fa-user"></i></div><div class="team-info"><h3>Maria Garcia</h3><p>Head of Operations</p></div></div>
+<div class="team-card"><div class="team-img" style="background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;color:#fff;font-size:48px"><i class="fas fa-user"></i></div><div class="team-info"><h3>James Wilson</h3><p>Chief Technology Officer</p></div></div>
+<div class="team-card"><div class="team-img" style="background:linear-gradient(135deg,#43e97b,#38f9d7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:48px"><i class="fas fa-user"></i></div><div class="team-info"><h3>Sophie Taylor</h3><p>Head of Customer Success</p></div></div>
+</div>
+</section>
+</div>
+
+<!-- ==================== CONTACT PAGE ==================== -->
+<div class="page-section" id="page-contact">
+<div class="breadcrumb"><a href="#" onclick="showPage('home');return false;">Home</a> / <span>Contact</span></div>
+<section class="section" style="padding-top:20px">
+<div class="section-header" style="justify-content:center;flex-direction:column;text-align:center"><h2 class="section-title">Get in <span>Touch</span></h2><p style="color:var(--gray)">We would love to hear from you</p></div>
+<div class="contact-grid">
+<div>
+<div class="contact-info-card"><div class="contact-icon"><i class="fas fa-envelope"></i></div><div><h4 style="margin-bottom:4px">Email Us</h4><p style="color:var(--gray);font-size:14px">support@gocart.com</p></div></div>
+<div class="contact-info-card"><div class="contact-icon"><i class="fas fa-phone"></i></div><div><h4 style="margin-bottom:4px">Call Us</h4><p style="color:var(--gray);font-size:14px">1-800-GOCART</p></div></div>
+<div class="contact-info-card"><div class="contact-icon"><i class="fas fa-clock"></i></div><div><h4 style="margin-bottom:4px">Business Hours</h4><p style="color:var(--gray);font-size:14px">Mon - Sat: 8AM - 10PM<br>Sunday: 9AM - 8PM</p></div></div>
+<div class="contact-info-card"><div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div><div><h4 style="margin-bottom:4px">Visit Us</h4><p style="color:var(--gray);font-size:14px">123 Market Street, New York, NY 10001</p></div></div>
+</div>
+<div>
+<div class="checkout-form" style="margin-bottom:24px">
+<h3 style="margin-bottom:24px">Send us a Message</h3>
+<div class="form-row"><div class="form-group"><label>Your Name</label><input type="text" placeholder="John Doe"></div><div class="form-group"><label>Your Email</label><input type="email" placeholder="john@example.com"></div></div>
+<div class="form-group"><label>Subject</label><input type="text" placeholder="How can we help?"></div>
+<div class="form-group"><label>Message</label><textarea rows="5" placeholder="Your message..."></textarea></div>
+<button class="btn btn-primary" style="width:100%" onclick="showToast('Message sent successfully!','success')"><i class="fas fa-paper-plane"></i> Send Message</button>
+</div>
+<div class="map-placeholder"><i class="fas fa-map" style="font-size:48px;opacity:.3"></i><span>Google Map Placeholder</span></div>
+</div>
+</div>
+</section>
+</div>
+
+<!-- ==================== FAQ PAGE ==================== -->
+<div class="page-section" id="page-faq">
+<div class="breadcrumb"><a href="#" onclick="showPage('home');return false;">Home</a> / <span>FAQ</span></div>
+<section class="section" style="padding-top:20px">
+<div class="section-header" style="justify-content:center;flex-direction:column;text-align:center"><h2 class="section-title">Frequently Asked <span>Questions</span></h2><p style="color:var(--gray)">Everything you need to know about Go Cart</p></div>
+<div id="faqContainer">
+<div class="faq-item"><div class="faq-question" onclick="toggleFaq(this)">How does Go Cart delivery work?<i class="fas fa-chevron-down"></i></div><div class="faq-answer"><p>Simply browse our products, add items to your cart, and checkout. Our delivery team will pick and pack your order, then deliver it to your doorstep within your chosen time slot. You can track your order in real-time through our app.</p></div></div>
+<div class="faq-item"><div class="faq-question" onclick="toggleFaq(this)">What are the delivery charges?<i class="fas fa-chevron-down"></i></div><div class="faq-answer"><p>Delivery is FREE for all orders over $50. For orders below $50, a flat delivery fee of $4.99 applies. Express delivery (within 2 hours) is available for an additional $9.99.</p></div></div>
+<div class="faq-item"><div class="faq-question" onclick="toggleFaq(this)">How do I return a product?<i class="fas fa-chevron-down"></i></div><div class="faq-answer"><p>If you are not satisfied with a product, you can request a return within 24 hours of delivery. Simply go to your order history, select the item, and click "Return". Our team will arrange a pickup and process your refund within 3-5 business days.</p></div></div>
+<div class="faq-item"><div class="faq-question" onclick="toggleFaq(this)">Are your products organic?<i class="fas fa-chevron-down"></i></div><div class="faq-answer"><p>We offer a wide range of organic products clearly labeled with our organic badge. All organic items are certified and sourced from trusted organic farms. You can filter products by "Organic" in our categories page.</p></div></div>
+<div class="faq-item"><div class="faq-question" onclick="toggleFaq(this)">What payment methods do you accept?<i class="fas fa-chevron-down"></i></div><div class="faq-answer"><p>We accept all major credit cards (Visa, Mastercard, Amex), PayPal, Google Pay, and Cash on Delivery. All online payments are secured with 256-bit SSL encryption.</p></div></div>
+<div class="faq-item"><div class="faq-question" onclick="toggleFaq(this)">How do I use coupon codes?<i class="fas fa-chevron-down"></i></div><div class="faq-answer"><p>During checkout, you will find a coupon code field. Enter your code and click "Apply". The discount will be automatically applied to your order total. Note that some coupons may have minimum order requirements.</p></div></div>
+</div>
+</section>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+<div class="footer-content">
+<div class="footer-brand">
+<a href="#" class="logo" onclick="showPage('home');return false;"><div class="logo-icon"><i class="fas fa-shopping-basket"></i></div>Go <span>Cart</span></a>
+<p>Your trusted online supermarket for fresh groceries. Quality products, fast delivery, and unbeatable prices.</p>
+<div class="footer-social">
+<a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+<a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+<a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+<a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+</div>
+</div>
+<div>
+<h4>Quick Links</h4>
+<ul class="footer-links">
+<li><a href="#" onclick="showPage('home');return false;">Home</a></li>
+<li><a href="#" onclick="showPage('categories');return false;">Categories</a></li>
+<li><a href="#" onclick="showPage('deals');return false;">Deals</a></li>
+<li><a href="#" onclick="showPage('about');return false;">About Us</a></li>
+<li><a href="#" onclick="showPage('contact');return false;">Contact</a></li>
+</ul>
+</div>
+<div>
+<h4>Categories</h4>
+<ul class="footer-links">
+<li><a href="#" onclick="filterByCategory('Fresh Vegetables');return false;">Fresh Vegetables</a></li>
+<li><a href="#" onclick="filterByCategory('Fresh Fruits');return false;">Fresh Fruits</a></li>
+<li><a href="#" onclick="filterByCategory('Dairy Products');return false;">Dairy Products</a></li>
+<li><a href="#" onclick="filterByCategory('Meat & Seafood');return false;">Meat & Seafood</a></li>
+<li><a href="#" onclick="filterByCategory('Bakery');return false;">Bakery</a></li>
+</ul>
+</div>
+<div>
+<h4>Customer Service</h4>
+<ul class="footer-links">
+<li><a href="#" onclick="showPage('faq');return false;">FAQ</a></li>
+<li><a href="#" onclick="showPage('account');return false;">My Account</a></li>
+<li><a href="#" onclick="showPage('account','orders');return false;">Order Tracking</a></li>
+<li><a href="#" onclick="showPage('contact');return false;">Support</a></li>
+<li><a href="#">Privacy Policy</a></li>
+</ul>
+</div>
+</div>
+<div class="footer-bottom">
+<span>2024 Go Cart. All rights reserved.</span>
+<span>Made with <i class="fas fa-heart" style="color:var(--danger)"></i> for fresh food lovers</span>
+</div>
+</footer>
+
+<script>
+// ==================== DATA ====================
+const categories=[
+{id:'veg',name:'Fresh Vegetables',icon:'🥬'},{id:'fruit',name:'Fresh Fruits',icon:'🍎'},
+{id:'dairy',name:'Dairy Products',icon:'🥛'},{id:'meat',name:'Meat & Seafood',icon:'🥩'},
+{id:'bakery',name:'Bakery',icon:'🥖'},{id:'frozen',name:'Frozen Foods',icon:'🍦'},
+{id:'bev',name:'Beverages',icon:'🥤'},{id:'snacks',name:'Snacks',icon:'🍿'},
+{id:'rice',name:'Rice & Grains',icon:'🍚'},{id:'oil',name:'Cooking Oil',icon:'🫒'},
+{id:'spices',name:'Spices',icon:'🌶️'},{id:'house',name:'Household',icon:'🏠'},
+{id:'clean',name:'Cleaning Supplies',icon:'🧼'},{id:'care',name:'Personal Care',icon:'🧴'},
+{id:'baby',name:'Baby Care',icon:'👶'},{id:'pet',name:'Pet Food',icon:'🐕'}
+];
+
+const products=[
+{id:1,name:'Organic Bananas',category:'Fresh Fruits',price:2.99,oldPrice:4.49,discount:33,image:'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400',rating:4.8,reviews:234,stock:50,inCart:0},
+{id:2,name:'Fresh Avocados (3 Pack)',category:'Fresh Vegetables',price:5.99,oldPrice:7.99,discount:25,image:'https://images.unsplash.com/photo-1523049673856-356c64cf11d9?w=400',rating:4.9,reviews:189,stock:30,inCart:0},
+{id:3,name:'Whole Milk 1 Gallon',category:'Dairy Products',price:3.79,oldPrice:4.29,discount:12,image:'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400',rating:4.7,reviews:412,stock:100,inCart:0},
+{id:4,name:'Atlantic Salmon Fillet',category:'Meat & Seafood',price:12.99,oldPrice:16.99,discount:24,image:'https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?w=400',rating:4.6,reviews:156,stock:20,inCart:0},
+{id:5,name:'Sourdough Bread',category:'Bakery',price:4.49,oldPrice:5.99,discount:25,image:'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400',rating:4.8,reviews:278,stock:40,inCart:0},
+{id:6,name:'Frozen Pizza Margherita',category:'Frozen Foods',price:6.99,oldPrice:8.99,discount:22,image:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',rating:4.5,reviews:345,stock:60,inCart:0},
+{id:7,name:'Sparkling Water 12 Pack',category:'Beverages',price:7.99,oldPrice:9.99,discount:20,image:'https://images.unsplash.com/photo-1556881286-fc6915169721?w=400',rating:4.4,reviews:198,stock:80,inCart:0},
+{id:8,name:'Organic Almonds 500g',category:'Snacks',price:8.99,oldPrice:11.99,discount:25,image:'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?w=400',rating:4.9,reviews:567,stock:45,inCart:0},
+{id:9,name:'Basmati Rice 5kg',category:'Rice & Grains',price:9.99,oldPrice:12.99,discount:23,image:'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400',rating:4.7,reviews:423,stock:70,inCart:0},
+{id:10,name:'Extra Virgin Olive Oil',category:'Cooking Oil',price:11.99,oldPrice:14.99,discount:20,image:'https://images.unsplash.com/photo-1474979266404-7cadd259c308?w=400',rating:4.8,reviews:312,stock:35,inCart:0},
+{id:11,name:'Organic Turmeric Powder',category:'Spices',price:3.49,oldPrice:4.99,discount:30,image:'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',rating:4.6,reviews:145,stock:90,inCart:0},
+{id:12,name:'Paper Towels 6 Rolls',category:'Household',price:8.99,oldPrice:10.99,discount:18,image:'https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=400',rating:4.3,reviews:678,stock:120,inCart:0},
+{id:13,name:'All-Purpose Cleaner',category:'Cleaning Supplies',price:4.99,oldPrice:6.49,discount:23,image:'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400',rating:4.5,reviews:234,stock:85,inCart:0},
+{id:14,name:'Organic Shampoo',category:'Personal Care',price:7.99,oldPrice:9.99,discount:20,image:'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400',rating:4.7,reviews:389,stock:55,inCart:0},
+{id:15,name:'Baby Diapers Size 4',category:'Baby Care',price:24.99,oldPrice:29.99,discount:17,image:'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400',rating:4.8,reviews:892,stock:40,inCart:0},
+{id:16,name:'Premium Dog Food 5kg',category:'Pet Food',price:18.99,oldPrice:24.99,discount:24,image:'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400',rating:4.6,reviews:456,stock:30,inCart:0},
+{id:17,name:'Red Apples (1kg)',category:'Fresh Fruits',price:3.99,oldPrice:5.49,discount:27,image:'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400',rating:4.7,reviews:312,stock:65,inCart:0},
+{id:18,name:'Fresh Spinach Bunch',category:'Fresh Vegetables',price:1.99,oldPrice:2.99,discount:33,image:'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400',rating:4.5,reviews:178,stock:80,inCart:0},
+{id:19,name:'Greek Yogurt 500g',category:'Dairy Products',price:4.99,oldPrice:6.49,discount:23,image:'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400',rating:4.8,reviews:567,stock:50,inCart:0},
+{id:20,name:'Chicken Breast 1kg',category:'Meat & Seafood',price:8.99,oldPrice:11.99,discount:25,image:'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400',rating:4.6,reviews:445,stock:25,inCart:0},
+{id:21,name:'Croissants (4 Pack)',category:'Bakery',price:5.99,oldPrice:7.99,discount:25,image:'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400',rating:4.9,reviews:234,stock:35,inCart:0},
+{id:22,name:'Ice Cream Vanilla 1L',category:'Frozen Foods',price:5.49,oldPrice:6.99,discount:21,image:'https://images.unsplash.com/photo-1563805042-7684c020e1cb?w=400',rating:4.7,reviews:678,stock:45,inCart:0},
+{id:23,name:'Orange Juice 1L',category:'Beverages',price:3.99,oldPrice:4.99,discount:20,image:'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=400',rating:4.5,reviews:289,stock:70,inCart:0},
+{id:24,name:'Dark Chocolate Bar',category:'Snacks',price:3.49,oldPrice:4.49,discount:22,image:'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400',rating:4.8,reviews:789,stock:100,inCart:0}
+];
+
+let cart=JSON.parse(localStorage.getItem('gocart_cart'))||[];
+let wishlist=JSON.parse(localStorage.getItem('gocart_wishlist'))||[];
+let recentlyViewed=JSON.parse(localStorage.getItem('gocart_recent'))||[];
+let currentSlide=0;
+let appliedCoupon=null;
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded',()=>{
+setTimeout(()=>{document.getElementById('loader').classList.add('hidden')},1200);
+renderCategories();
+renderFeaturedCategories();
+renderProducts('flashSaleProducts',products.slice(0,4));
+renderProducts('bestSellingProducts',products.slice(4,12));
+renderProducts('todaysDeals',products.filter(p=>p.discount>=25));
+renderProducts('dealsProducts',products.filter(p=>p.discount>=20));
+renderAllCategories();
+renderFilteredProducts();
+updateCartUI();
+updateWishlistUI();
+startCountdown();
+startSlider();
+initScrollEffects();
+setTimeout(()=>{if(!localStorage.getItem('gocart_newsletter'))showNewsletterPopup()},5000);
+});
+
+// ==================== RENDERING ====================
+function renderCategories(){
+const list=document.getElementById('categoriesList');
+list.innerHTML='<button class="category-pill active" onclick="filterByCategory(")">All</button>'+
+categories.map(c=>`<button class="category-pill" onclick="filterByCategory('${c.name}')">${c.icon} ${c.name}</button>`).join('');
+const filterSelect=document.getElementById('filterCategory');
+if(filterSelect)filterSelect.innerHTML='<option value="">All Categories</option>'+categories.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+}
+
+function renderFeaturedCategories(){
+const grid=document.getElementById('featuredCategories');
+grid.innerHTML=categories.slice(0,8).map(c=>`
+<a href="#" class="category-card" onclick="filterByCategory('${c.name}');return false;">
+<div class="cat-icon">${c.icon}</div>
+<h3>${c.name}</h3>
+</a>`).join('');
+}
+
+function renderAllCategories(){
+const grid=document.getElementById('allCategories');
+if(grid)grid.innerHTML=categories.map(c=>`
+<a href="#" class="category-card" onclick="filterByCategory('${c.name}');return false;">
+<div class="cat-icon">${c.icon}</div>
+<h3>${c.name}</h3>
+</a>`).join('');
+}
+
+function renderProducts(containerId,productList){
+const container=document.getElementById(containerId);
+if(!container)return;
+container.innerHTML=productList.map(p=>createProductCard(p)).join('');
+}
+
+function createProductCard(p){
+const inCart=cart.find(c=>c.id===p.id);
+const qty=inCart?inCart.qty:0;
+const isWishlisted=wishlist.includes(p.id);
+const stockStatus=p.stock>20?'<i class="fas fa-check-circle"></i> In Stock':p.stock>0?'<i class="fas fa-exclamation-circle"></i> Only '+p.stock+' left':'<i class="fas fa-times-circle"></i> Out of Stock';
+const stockClass=p.stock>20?'':p.stock>0?'low':'';
+return `
+<div class="product-card">
+<div class="product-image-wrap">
+<img src="${p.image}" alt="${p.name}" class="product-image" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=${encodeURIComponent(p.name)}'">
+<div class="product-badges">
+${p.discount?`<span class="badge badge-discount">-${p.discount}%</span>`:''}
+${p.stock<10?'<span class="badge badge-stock">Low Stock</span>':''}
+</div>
+<div class="product-actions">
+<button class="action-btn ${isWishlisted?'wishlisted':''}" onclick="toggleWishlist(${p.id},event)" title="${isWishlisted?'Remove from':'Add to'} Wishlist"><i class="fas fa-heart"></i></button>
+<button class="action-btn" onclick="quickView(${p.id},event)" title="Quick View"><i class="fas fa-eye"></i></button>
+</div>
+</div>
+<div class="product-info">
+<div class="product-category">${p.category}</div>
+<h3 class="product-name">${p.name}</h3>
+<div class="product-rating"><span class="stars">${'★'.repeat(Math.floor(p.rating))}${p.rating%1>=0.5?'½':''}</span><span class="rating-count">(${p.reviews})</span></div>
+<div class="product-price-wrap"><span class="price">$${p.price.toFixed(2)}</span>${p.oldPrice?`<span class="old-price">$${p.oldPrice.toFixed(2)}</span>`:''}</div>
+<div class="product-stock ${stockClass}">${stockStatus}</div>
+${qty>0?`
+<div class="qty-selector">
+<button class="qty-btn" onclick="updateQty(${p.id},-1)">-</button>
+<span class="qty-value">${qty}</span>
+<button class="qty-btn" onclick="updateQty(${p.id},1)">+</button>
+</div>
+`:p.stock>0?`<button class="add-to-cart" onclick="addToCart(${p.id})"><i class="fas fa-shopping-cart"></i> Add to Cart</button>`:`<button class="add-to-cart" disabled style="background:var(--gray);cursor:not-allowed"><i class="fas fa-times"></i> Out of Stock</button>`}
+</div>
+</div>`;
+}
+
+function renderFilteredProducts(){
+const container=document.getElementById('filteredProducts');
+if(!container)return;
+let filtered=[...products];
+const cat=document.getElementById('filterCategory')?.value;
+const sort=document.getElementById('sortBy')?.value;
+const minP=parseFloat(document.getElementById('minPrice')?.value)||0;
+const maxP=parseFloat(document.getElementById('maxPrice')?.value)||Infinity;
+if(cat)filtered=filtered.filter(p=>p.category===cat);
+filtered=filtered.filter(p=>p.price>=minP&&p.price<=maxP);
+if(sort==='price-low')filtered.sort((a,b)=>a.price-b.price);
+else if(sort==='price-high')filtered.sort((a,b)=>b.price-a.price);
+else if(sort==='rating')filtered.sort((a,b)=>b.rating-a.rating);
+else if(sort==='newest')filtered.sort((a,b)=>b.id-a.id);
+container.innerHTML=filtered.length?filtered.map(p=>createProductCard(p)).join(''):`<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray)"><i class="fas fa-search" style="font-size:48px;margin-bottom:16px;opacity:.3"></i><h3>No products found</h3><p>Try adjusting your filters</p></div>`;
+}
+
+function applyFilters(){renderFilteredProducts();}
+
+// ==================== CART ====================
+function addToCart(id,qty=1){
+const p=products.find(x=>x.id===id);
+if(!p||p.stock<=0)return;
+const existing=cart.find(c=>c.id===id);
+if(existing){existing.qty+=qty;if(existing.qty>p.stock)existing.qty=p.stock;}
+else cart.push({id:p.id,name:p.name,price:p.price,image:p.image,qty:qty});
+localStorage.setItem('gocart_cart',JSON.stringify(cart));
+updateCartUI();
+showToast(`${p.name} added to cart!`,'success');
+}
+
+function updateQty(id,delta){
+const item=cart.find(c=>c.id===id);
+if(!item)return;
+item.qty+=delta;
+if(item.qty<=0){cart=cart.filter(c=>c.id!==id);}
+localStorage.setItem('gocart_cart',JSON.stringify(cart));
+updateCartUI();
+renderFilteredProducts();
+const activePage=document.querySelector('.page-section.active');
+if(activePage.id==='page-home'){
+renderProducts('flashSaleProducts',products.slice(0,4));
+renderProducts('bestSellingProducts',products.slice(4,12));
+renderProducts('todaysDeals',products.filter(p=>p.discount>=25));
+}
+}
+
+function removeFromCart(id){
+cart=cart.filter(c=>c.id!==id);
+localStorage.setItem('gocart_cart',JSON.stringify(cart));
+updateCartUI();
+renderFilteredProducts();
+}
+
+function updateCartUI(){
+const itemsContainer=document.getElementById('cartItems');
+const footer=document.getElementById('cartFooter');
+const badge=document.getElementById('cartBadge');
+const totalQty=cart.reduce((s,c)=>s+c.qty,0);
+badge.textContent=totalQty;
+badge.style.display=totalQty>0?'flex':'none';
+if(!cart.length){
+itemsContainer.innerHTML='<div class="cart-empty"><i class="fas fa-shopping-basket"></i><h3>Your cart is empty</h3><p>Add some fresh products!</p></div>';
+footer.style.display='none';return;
+}
+footer.style.display='block';
+itemsContainer.innerHTML=cart.map(c=>`
+<div class="cart-item">
+<img src="${c.image}" alt="${c.name}" class="cart-item-img" onerror="this.src='https://via.placeholder.com/80?text=Product'">
+<div class="cart-item-info">
+<div class="cart-item-name">${c.name}</div>
+<div class="cart-item-price">$${(c.price*c.qty).toFixed(2)}</div>
+<div class="cart-item-actions">
+<div class="qty-selector" style="padding:4px 8px"><button class="qty-btn" style="width:24px;height:24px" onclick="updateQty(${c.id},-1)">-</button><span class="qty-value" style="min-width:20px;font-size:13px">${c.qty}</span><button class="qty-btn" style="width:24px;height:24px" onclick="updateQty(${c.id},1)">+</button></div>
+<button class="remove-item" onclick="removeFromCart(${c.id})"><i class="fas fa-trash"></i> Remove</button>
+</div>
+</div>
+</div>`).join('');
+const subtotal=cart.reduce((s,c)=>s+c.price*c.qty,0);
+const delivery=subtotal>50?0:4.99;
+const discount=appliedCoupon?subtotal*0.1:0;
+const total=subtotal+delivery-discount;
+document.getElementById('subtotal').textContent='$'+subtotal.toFixed(2);
+document.getElementById('deliveryFee').textContent=delivery===0?'FREE':'$'+delivery.toFixed(2);
+document.getElementById('discountRow').style.display=discount>0?'flex':'none';
+document.getElementById('discountAmount').textContent='-$'+discount.toFixed(2);
+document.getElementById('cartTotal').textContent='$'+total.toFixed(2);
+}
+
+function toggleCart(){
+document.getElementById('cartOverlay').classList.toggle('active');
+document.getElementById('cartSidebar').classList.toggle('active');
+}
+
+// ==================== WISHLIST ====================
+function toggleWishlist(id,event){
+if(event)event.stopPropagation();
+const idx=wishlist.indexOf(id);
+if(idx>-1){wishlist.splice(idx,1);showToast('Removed from wishlist','success');}
+else{wishlist.push(id);showToast('Added to wishlist!','success');}
+localStorage.setItem('gocart_wishlist',JSON.stringify(wishlist));
+updateWishlistUI();
+renderFilteredProducts();
+const activePage=document.querySelector('.page-section.active');
+if(activePage.id==='page-home'){
+renderProducts('flashSaleProducts',products.slice(0,4));
+renderProducts('bestSellingProducts',products.slice(4,12));
+renderProducts('todaysDeals',products.filter(p=>p.discount>=25));
+}
+}
+
+function updateWishlistUI(){
+const badge=document.getElementById('wishlistBadge');
+badge.textContent=wishlist.length;
+badge.style.display=wishlist.length>0?'flex':'none';
+const grid=document.getElementById('wishlistGrid');
+if(grid){
+const wishProducts=products.filter(p=>wishlist.includes(p.id));
+grid.innerHTML=wishProducts.length?wishProducts.map(p=>createProductCard(p)).join(''):`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--gray)"><i class="fas fa-heart" style="font-size:48px;margin-bottom:16px;opacity:.3"></i><h3>Your wishlist is empty</h3></div>`;
+}
+}
+
+// ==================== QUICK VIEW ====================
+function quickView(id,event){
+if(event)event.stopPropagation();
+const p=products.find(x=>x.id===id);
+if(!p)return;
+addToRecentlyViewed(p);
+document.getElementById('quickViewContent').innerHTML=`
+<div class="modal-image"><img src="${p.image}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/400?text=${encodeURIComponent(p.name)}'"></div>
+<div class="modal-details">
+<div class="product-category">${p.category}</div>
+<h2 style="font-size:24px;margin-bottom:12px">${p.name}</h2>
+<div class="product-rating" style="margin-bottom:16px"><span class="stars">${'★'.repeat(Math.floor(p.rating))}${p.rating%1>=0.5?'½':''}</span><span class="rating-count">(${p.reviews} reviews)</span></div>
+<div class="product-price-wrap" style="margin-bottom:20px"><span class="price" style="font-size:28px">$${p.price.toFixed(2)}</span>${p.oldPrice?`<span class="old-price" style="font-size:18px">$${p.oldPrice.toFixed(2)}</span><span class="badge badge-discount">-${p.discount}%</span>`:''}</div>
+<p style="color:var(--gray);line-height:1.7;margin-bottom:24px">Fresh, high-quality ${p.category.toLowerCase()} sourced from trusted suppliers. Perfect for your daily needs. Store in a cool, dry place for optimal freshness.</p>
+<div class="product-stock ${p.stock>20?'':p.stock>0?'low':''}" style="margin-bottom:20px;font-size:14px">${p.stock>20?'<i class="fas fa-check-circle"></i> In Stock':p.stock>0?'<i class="fas fa-exclamation-circle"></i> Only '+p.stock+' left':'<i class="fas fa-times-circle"></i> Out of Stock'}</div>
+${cart.find(c=>c.id===p.id)?`
+<div class="qty-selector" style="margin-bottom:16px"><button class="qty-btn" onclick="updateQty(${p.id},-1);quickView(${p.id})">-</button><span class="qty-value">${cart.find(c=>c.id===p.id).qty}</span><button class="qty-btn" onclick="updateQty(${p.id},1);quickView(${p.id})">+</button></div>
+`:p.stock>0?`<button class="btn btn-primary" style="width:100%;margin-bottom:12px" onclick="addToCart(${p.id});quickView(${p.id})"><i class="fas fa-shopping-cart"></i> Add to Cart</button>`:`<button class="btn btn-primary" disabled style="width:100%;background:var(--gray);cursor:not-allowed"><i class="fas fa-times"></i> Out of Stock</button>`}
+<button class="btn btn-outline" style="width:100%" onclick="toggleWishlist(${p.id});quickView(${p.id})"><i class="fas fa-heart"></i> ${wishlist.includes(p.id)?'Remove from':'Add to'} Wishlist</button>
+</div>`;
+document.getElementById('quickViewModal').classList.add('active');
+}
+
+function closeQuickView(event){
+if(event&&event.target!==document.getElementById('quickViewModal'))return;
+document.getElementById('quickViewModal').classList.remove('active');
+}
+
+// ==================== RECENTLY VIEWED ====================
+function addToRecentlyViewed(p){
+recentlyViewed=recentlyViewed.filter(r=>r.id!==p.id);
+recentlyViewed.unshift({id:p.id,image:p.image});
+if(recentlyViewed.length>5)recentlyViewed=recentlyViewed.slice(0,5);
+localStorage.setItem('gocart_recent',JSON.stringify(recentlyViewed));
+renderRecentlyViewed();
+}
+
+function renderRecentlyViewed(){
+const container=document.getElementById('recentlyViewed');
+const items=document.getElementById('recentItems');
+if(!recentlyViewed.length){container.classList.remove('visible');return;}
+container.classList.add('visible');
+items.innerHTML=recentlyViewed.map(r=>`<div class="recent-item" onclick="quickView(${r.id})"><img src="${r.image}" alt="Product" onerror="this.src='https://via.placeholder.com/60'"></div>`).join('');
+}
+
+// ==================== NAVIGATION ====================
+function showPage(page,tab){
+document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+document.getElementById('page-'+page)?.classList.add('active');
+window.scrollTo({top:0,behavior:'smooth'});
+if(page==='categories')renderFilteredProducts();
+if(page==='account'&&tab)showAccountTab(tab);
+if(page==='checkout')renderCheckout();
+}
+
+function filterByCategory(cat){
+showPage('categories');
+document.getElementById('filterCategory').value=cat;
+renderFilteredProducts();
+}
+
+function showAccountTab(tab){
+document.querySelectorAll('.account-menu a').forEach(a=>a.classList.remove('active'));
+document.getElementById('tab-'+tab)?.classList.add('active');
+['profile','orders','wishlist','addresses','settings'].forEach(t=>{
+document.getElementById('account-'+t).style.display=t===tab?'block':'none';
+});
+if(tab==='wishlist')updateWishlistUI();
+if(tab==='orders')renderOrders();
+}
+
+function renderOrders(){
+const list=document.getElementById('ordersList');
+if(!cart.length){list.innerHTML='<p style="color:var(--gray);text-align:center;padding:40px">No orders yet. Start shopping!</p>';return;}
+list.innerHTML=`<div style="background:var(--light-bg);border-radius:16px;padding:20px;margin-bottom:16px"><div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="font-weight:700">Order #GC-${Date.now().toString().slice(-6)}</span><span style="color:var(--success);font-weight:600"><i class="fas fa-check-circle"></i> Delivered</span></div><div style="color:var(--gray);font-size:14px">${cart.length} items · $${cart.reduce((s,c)=>s+c.price*c.qty,0).toFixed(2)}</div></div>`;
+}
+
+// ==================== CHECKOUT ====================
+function renderCheckout(){
+const itemsDiv=document.getElementById('checkoutItems');
+if(!itemsDiv)return;
+if(!cart.length){itemsDiv.innerHTML='<p style="color:var(--gray);text-align:center;padding:20px">Your cart is empty</p>';return;}
+itemsDiv.innerHTML=cart.map(c=>`<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--light-gray)"><span>${c.name} x${c.qty}</span><span style="font-weight:600">$${(c.price*c.qty).toFixed(2)}</span></div>`).join('');
+const subtotal=cart.reduce((s,c)=>s+c.price*c.qty,0);
+const delivery=subtotal>50?0:4.99;
+const discount=appliedCoupon?subtotal*0.1:0;
+const total=subtotal+delivery-discount;
+document.getElementById('checkoutSubtotal').textContent='$'+subtotal.toFixed(2);
+document.getElementById('checkoutDelivery').textContent=delivery===0?'FREE':'$'+delivery.toFixed(2);
+document.getElementById('checkoutDiscountRow').style.display=discount>0?'flex':'none';
+document.getElementById('checkoutDiscount').textContent='-$'+discount.toFixed(2);
+document.getElementById('checkoutTotal').textContent='$'+total.toFixed(2);
+}
+
+function selectPayment(el){
+document.querySelectorAll('.payment-method').forEach(p=>p.classList.remove('selected'));
+el.classList.add('selected');
+el.querySelector('input').checked=true;
+}
+
+function applyCoupon(){
+const code=document.getElementById('couponCode').value.toUpperCase();
+if(code==='FRESH20'||code==='SAVE10'){appliedCoupon=code;renderCheckout();showToast('Coupon applied! 10% discount','success');}
+else{showToast('Invalid coupon code','error');}
+}
+
+function placeOrder(){
+const required=['firstName','lastName','email','phone','address','city','zip'];
+for(const id of required){if(!document.getElementById(id)?.value.trim()){showToast('Please fill in all required fields','error');document.getElementById(id)?.focus();return;}}
+if(!cart.length){showToast('Your cart is empty','error');return;}
+cart=[];localStorage.setItem('gocart_cart',JSON.stringify(cart));
+updateCartUI();renderCheckout();
+showToast('Order placed successfully! Thank you for shopping with Go Cart.','success');
+setTimeout(()=>showPage('home'),2000);
+}
+
+// ==================== SEARCH ====================
+function searchProducts(){
+const query=document.getElementById('searchInput').value.toLowerCase();
+if(!query)return;
+showPage('categories');
+const filtered=products.filter(p=>p.name.toLowerCase().includes(query)||p.category.toLowerCase().includes(query));
+const container=document.getElementById('filteredProducts');
+container.innerHTML=filtered.length?filtered.map(p=>createProductCard(p)).join(''):`<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray)"><i class="fas fa-search" style="font-size:48px;margin-bottom:16px;opacity:.3"></i><h3>No results for "${query}"</h3></div>`;
+}
+
+document.getElementById('searchInput')?.addEventListener('keypress',e=>{if(e.key==='Enter')searchProducts();});
+
+// ==================== COUNTDOWN ====================
+function startCountdown(){
+let end=Date.now()+4*60*60*1000+32*60*1000+15*1000;
+function update(){
+const diff=end-Date.now();
+if(diff<=0)end=Date.now()+24*60*60*1000;
+const h=Math.floor(diff/3600000);
+const m=Math.floor((diff%3600000)/60000);
+const s=Math.floor((diff%60000)/1000);
+['cd','deal'].forEach(p=>{
+const he=document.getElementById(p+'-hours');
+if(he)he.textContent=String(h).padStart(2,'0');
+const me=document.getElementById(p+'-minutes');
+if(me)me.textContent=String(m).padStart(2,'0');
+const se=document.getElementById(p+'-seconds');
+if(se)se.textContent=String(s).padStart(2,'0');
+});
+}
+update();setInterval(update,1000);
+}
+
+// ==================== SLIDER ====================
+function startSlider(){
+setInterval(()=>{
+currentSlide=(currentSlide+1)%3;
+document.querySelectorAll('.hero-slide').forEach((s,i)=>s.classList.toggle('active',i===currentSlide));
+document.querySelectorAll('.slider-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSlide));
+},5000);
+}
+
+function goToSlide(n){
+currentSlide=n;
+document.querySelectorAll('.hero-slide').forEach((s,i)=>s.classList.toggle('active',i===n));
+document.querySelectorAll('.slider-dot').forEach((d,i)=>d.classList.toggle('active',i===n));
+}
+
+// ==================== UI EFFECTS ====================
+function initScrollEffects(){
+const header=document.getElementById('header');
+const scrollTop=document.getElementById('scrollTop');
+window.addEventListener('scroll',()=>{
+header.classList.toggle('scrolled',window.scrollY>50);
+scrollTop.classList.toggle('visible',window.scrollY>500);
+});
+}
+
+function toggleDarkMode(){
+document.documentElement.toggleAttribute('data-theme','dark');
+const isDark=document.documentElement.hasAttribute('data-theme');
+localStorage.setItem('gocart_dark',isDark);
+}
+
+if(localStorage.getItem('gocart_dark')==='true')document.documentElement.setAttribute('data-theme','dark');
+
+function toggleMobileMenu(){
+document.getElementById('mobileMenu').classList.toggle('active');
+document.getElementById('mobileMenuOverlay').classList.toggle('active');
+}
+
+// ==================== TOASTS ====================
+function showToast(message,type='success'){
+const container=document.getElementById('toastContainer');
+const toast=document.createElement('div');
+toast.className='toast '+type;
+toast.innerHTML=`<div class="toast-icon"><i class="fas fa-${type==='success'?'check':'exclamation'}-circle"></i></div><span>${message}</span>`;
+container.appendChild(toast);
+setTimeout(()=>{toast.style.opacity='0';toast.style.transform='translateY(20px)';setTimeout(()=>toast.remove(),300)},3000);
+}
+
+// ==================== NEWSLETTER ====================
+function showNewsletterPopup(){document.getElementById('newsletterPopup').classList.add('active');}
+function closeNewsletterPopup(){document.getElementById('newsletterPopup').classList.remove('active');}
+function subscribeNewsletter(){
+const email=document.getElementById('popupEmail').value;
+if(!email||!email.includes('@')){showToast('Please enter a valid email','error');return;}
+localStorage.setItem('gocart_newsletter','true');
+closeNewsletterPopup();
+showToast('Welcome to Go Cart! Check your email for 20% off.','success');
+}
+function subscribeNewsletterMain(){
+const email=document.getElementById('newsletterEmail').value;
+if(!email||!email.includes('@')){showToast('Please enter a valid email','error');return;}
+showToast('Subscribed successfully! Check your inbox.','success');
+}
+
+// ==================== FAQ ====================
+function toggleFaq(el){
+const item=el.parentElement;
+item.classList.toggle('active');
+}
+
+// ==================== COUPON ====================
+function applyCouponCode(){
+const code=document.getElementById('couponCode').value.toUpperCase();
+if(code==='FRESH20'||code==='SAVE10'){appliedCoupon=code;renderCheckout();showToast('10% discount applied!','success');}
+else{showToast('Invalid coupon code','error');}
+}
+</script>
+</body>
+</html>
